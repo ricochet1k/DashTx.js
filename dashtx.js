@@ -1,72 +1,3 @@
-/**
- * @typedef Tx
- * @prop {Uint53} SATOSHIS
- * @prop {Uint32} _HEADER_ONLY_SIZE
- * @prop {Uint32} HEADER_SIZE
- * @prop {Uint32} LEGACY_DUST
- * @prop {Uint32} MIN_INPUT_SIZE - 147 each
- * @prop {Uint32} MAX_INPUT_PAD - 2 (possible ASN.1 BigInt padding)
- * @prop {Uint32} MAX_INPUT_SIZE - 149 each (with padding)
- * @prop {Uint32} OUTPUT_SIZE - 34 each
- * @prop {Uint32|0x00000001} SIGHASH_ALL - 0x01
- * @prop {Uint32|0x00000002} SIGHASH_NONE - 0x02
- * @prop {Uint32|0x00000003} SIGHASH_SINGLE - 0x03 - Not Supported
- * @prop {Uint32|0x00000080} SIGHASH_ANYONECANPAY - 0x80
- * @prop {Uint32|0x00000081} SIGHASH_DEFAULT - 0x81
- * @prop {TxAppraise} appraise
- * @prop {TxAppraiseCounts} _appraiseCounts
- * @prop {TxAppraiseMemos} _appraiseMemos
- * @prop {TxToDash} toDash
- * @prop {TxToSats} toSats
- * @prop {TxCreate} create
- * @prop {TxCreateDonationOutput} createDonationOutput
- * @prop {TxCreateRaw} createRaw
- * @prop {TxCreateInputRaw} createInputRaw
- * @prop {TxCreateForSig} createForSig
- * @prop {TxCreateInputForSig} createInputForSig
- * @prop {TxCreatePkhScript} createPkhScript
- * @prop {TxCreateSigned} createSigned
- * @prop {TxGetId} getId - only useful for fully signed tx
- * @prop {TxCreateLegacyTx} createLegacyTx
- * @prop {TxDoubleSha256} doubleSha256
- * @prop {TxParseUnknown} parseUnknown
- * @prop {TxParseRequest} parseRequest
- * @prop {TxParseSigHash} parseSigHash
- * @prop {TxParseSigned} parseSigned
- * @prop {TxSelectSigHashInputs} selectSigHashInputs
- * @prop {TxSelectSigHashOutputs} selectSigHashOutputs
- * @prop {TxSerialize} serialize
- * @prop {TxSerializeForSig} serializeForSig
- * @prop {TxSerializeInputs} serializeInputs
- * @prop {TxSerializeInput} serializeInput
- * @prop {TxSerializeOutputs} serializeOutputs
- * @prop {TxSerializeOutput} serializeOutput
- * @prop {TxSortBySats} sortBySatsAsc
- * @prop {TxSortBySats} sortBySatsDsc
- * @prop {TxSortInputs} sortInputs
- * @prop {TxSortOutputs} sortOutputs
- * @prop {TxSum} sum - sums an array of TxInputUnspent
- * @prop {TxUtils} utils
- * @prop {Function} _createInsufficientFundsError
- * @prop {Function} _createMemoScript
- * @prop {Function} _debugPrint
- * @prop {Function} _legacyMustSelectInputs
- * @prop {Function} _legacySelectOptimalUtxos
- * @prop {Function} _parse
- */
-
-/**
- * @typedef TxUtils
- * @prop {TxRPC} rpc
- * @prop {TxToVarInt} toVarInt
- * @prop {TxToVarIntSize} toVarIntSize
- * @prop {TxReverseHex} reverseHex
- * @prop {TxHexToBytes} hexToBytes
- * @prop {TxBytesToHex} bytesToHex
- * @prop {TxStringToHex} strToHex
- * @prop {TxToUint32LE} toUint32LE
- * @prop {TxToUint64LE} toUint64LE
- */
 
 /**
  * @callback TxCreate
@@ -83,13 +14,7 @@
 // Based on discoveries from
 // https://github.com/jojobyte/browser-import-rabbit-hole
 
-/** @type {Tx} */
-//@ts-ignore
-var DashTx = ("object" === typeof module && exports) || {};
-(function (window, Tx) {
-  "use strict";
 
-  //@ts-ignore
   let Crypto = globalThis.crypto;
 
   let TxUtils = {};
@@ -125,19 +50,19 @@ var DashTx = ("object" === typeof module && exports) || {};
   const PKH_SCRIPT_SIZE = (25).toString(16); // 0x19
 
   //@ts-ignore - for debug only
-  Tx._OP_DUP_HEX = OP_DUP;
+  export const _OP_DUP_HEX = OP_DUP;
   //@ts-ignore - for debug only
-  Tx._OP_HASH160_HEX = OP_HASH160;
+  export const _OP_HASH160_HEX = OP_HASH160;
   //@ts-ignore - for debug only
-  Tx._OP_EQUALVERIFY_HEX = OP_EQUALVERIFY;
+  export const _OP_EQUALVERIFY_HEX = OP_EQUALVERIFY;
   //@ts-ignore - for debug only
-  Tx._OP_CHECKSIG_HEX = OP_CHECKSIG;
+  export const _OP_CHECKSIG_HEX = OP_CHECKSIG;
   //@ts-ignore - for debug only
-  Tx._OP_RETURN_HEX = OP_RETURN;
+  export const _OP_RETURN_HEX = OP_RETURN;
   //@ts-ignore - for debug only
-  Tx._PKH_SIZE_HEX = PKH_SIZE;
+  export const _PKH_SIZE_HEX = PKH_SIZE;
   //@ts-ignore - for debug only
-  Tx._PKH_SCRIPT_SIZE_HEX = PKH_SCRIPT_SIZE;
+  export const _PKH_SCRIPT_SIZE_HEX = PKH_SCRIPT_SIZE;
 
   const E_KEYBYTES_UNDEFINED = `developer error: keyUtils.getPrivateKey() must return 'keyBytes' to sign, or 'null' to skip`;
   const E_LITTLE_INT =
@@ -146,49 +71,49 @@ var DashTx = ("object" === typeof module && exports) || {};
     "JavaScript 'BigInt's are arbitrarily large, but you may only use up to UINT64 for transactions";
   const E_NO_OUTPUTS = `'outputs' list must not be empty; use .createDonationOutput({ message }) to burn inputs`;
 
-  Tx.SATOSHIS = SATOSHIS;
-  Tx.LEGACY_DUST = 2000;
+  export const LEGACY_DUST = 2000;
 
-  Tx._HEADER_ONLY_SIZE =
+  const _HEADER_ONLY_SIZE =
     2 + // version
     2 + // type
     4; // locktime
 
-  Tx.HEADER_SIZE =
+  export const HEADER_SIZE =
     2 + // version
     2 + // type
     1 + // input count
     1 + // output count
     4; // locktime
 
-  Tx.MIN_INPUT_SIZE = // 147~149 each
+  export const MIN_INPUT_SIZE = // 147~149 each
     4 + // outputIndex
     32 + // txId
     1 + // sigscriptsize
     106 + // sigscript
     4; // sequence
 
-  Tx.MAX_INPUT_PAD = // possible ASN.1 BigInt padding
+  export const MAX_INPUT_PAD = // possible ASN.1 BigInt padding
     1 + // Signature R value
     1 + // Signature S value
     0; // Public Key value is NOT BigInt padded
 
-  Tx.MAX_INPUT_SIZE = Tx.MIN_INPUT_SIZE + Tx.MAX_INPUT_PAD;
+  export const MAX_INPUT_SIZE = MIN_INPUT_SIZE + MAX_INPUT_PAD;
 
-  Tx.OUTPUT_SIZE = // 34 each
+  export const OUTPUT_SIZE = // 34 each
     8 + // satoshis (base units) value
     1 + // lockscript size
     25; // lockscript
 
-  Tx.SIGHASH_ALL = 0x01;
-  Tx.SIGHASH_NONE = 0x02;
-  Tx.SIGHASH_SINGLE = 0x03; // Not Supported
-  Tx.SIGHASH_ANYONECANPAY = 0x80;
-  Tx.SIGHASH_DEFAULT = Tx.SIGHASH_ALL | Tx.SIGHASH_ANYONECANPAY;
+  export const SIGHASH_ALL = 0x01;
+  export const SIGHASH_NONE = 0x02;
+  export const SIGHASH_SINGLE = 0x03; // Not Supported
+  export const SIGHASH_ANYONECANPAY = 0x80;
+  export const SIGHASH_DEFAULT = SIGHASH_ALL | SIGHASH_ANYONECANPAY;
 
-  Tx.appraise = function (txInfo) {
-    let extraSize = Tx._appraiseMemos(txInfo.outputs);
-    let fees = Tx._appraiseCounts(
+  /** @type {TxAppraise} */
+  export function appraise(txInfo) {
+    let extraSize = _appraiseMemos(txInfo.outputs);
+    let fees = _appraiseCounts(
       txInfo.inputs.length,
       txInfo.outputs.length,
       extraSize,
@@ -197,18 +122,19 @@ var DashTx = ("object" === typeof module && exports) || {};
     return fees;
   };
 
-  Tx._appraiseCounts = function (numInputs, numOutputs, extraSize) {
+  /** @type {TxAppraiseCounts} */
+  function _appraiseCounts(numInputs, numOutputs, extraSize) {
     let min = Tx._HEADER_ONLY_SIZE;
 
-    min += Tx.utils.toVarIntSize(numInputs);
-    min += Tx.MIN_INPUT_SIZE * numInputs;
+    min += TxUtils.toVarIntSize(numInputs);
+    min += MIN_INPUT_SIZE * numInputs;
 
-    min += Tx.utils.toVarIntSize(numOutputs);
+    min += TxUtils.toVarIntSize(numOutputs);
     if (extraSize) {
       min += extraSize; // memos, etc
     }
 
-    let maxPadding = Tx.MAX_INPUT_PAD * numInputs;
+    let maxPadding = MAX_INPUT_PAD * numInputs;
     let max = min + maxPadding;
 
     let spread = max - min;
@@ -219,7 +145,8 @@ var DashTx = ("object" === typeof module && exports) || {};
     return fees;
   };
 
-  Tx._appraiseMemos = function (outputs) {
+  /** @type {TxAppraiseMemos} */
+  function _appraiseMemos(outputs) {
     let size = 0;
 
     for (let output of outputs) {
@@ -238,13 +165,14 @@ var DashTx = ("object" === typeof module && exports) || {};
         size += OP_RETURN_HEADER_SIZE + memoSize;
         continue;
       }
-      size += Tx.OUTPUT_SIZE;
+      size += OUTPUT_SIZE;
     }
 
     return size;
   };
 
-  Tx.toDash = function (satoshis) {
+  /** @type {TxToDash} */
+  export function toDash(satoshis) {
     let dashNum = satoshis / SATOSHIS;
     let dashStr = dashNum.toFixed(8);
     let floatBalance = parseFloat(dashStr);
@@ -252,14 +180,17 @@ var DashTx = ("object" === typeof module && exports) || {};
     return floatBalance;
   };
 
-  Tx.toSats = function (dash) {
+  /** @type {TxToSats} */
+  export function toSats(dash) {
     let sats = dash * SATOSHIS;
     sats = Math.round(sats);
 
     return sats;
   };
 
-  Tx.create = function (keyUtils) {
+  
+  /** @param {TxKeyUtils} keyUtils */
+  export function create(keyUtils) {
     if (!keyUtils?.getPrivateKey) {
       throw new Error(`you must create with 'opts.getPrivateKey()'`);
     }
@@ -288,10 +219,14 @@ var DashTx = ("object" === typeof module && exports) || {};
 
     let txInst = {};
 
-    /** @type {TxHashAndSignAll} */
+    /** 
+     * @param {TxInfo} txInfo
+     * @param {Uint32} [sigHashType]
+     * @returns {Promise<TxInfoSigned>}
+     */
     txInst.hashAndSignAll = async function (txInfo, sigHashType) {
       let sortedInputs = txInfo.inputs.slice(0);
-      sortedInputs.sort(Tx.sortInputs);
+      sortedInputs.sort(sortInputs);
       for (let i = 0; i < sortedInputs.length; i += 1) {
         let isSelf = sortedInputs[i] === txInfo.inputs[i];
         if (!isSelf) {
@@ -303,7 +238,7 @@ var DashTx = ("object" === typeof module && exports) || {};
       }
 
       let sortedOutputs = txInfo.outputs.slice(0);
-      sortedOutputs.sort(Tx.sortOutputs);
+      sortedOutputs.sort(sortOutputs);
       for (let i = 0; i < sortedOutputs.length; i += 1) {
         let isSelf = sortedOutputs[i] === txInfo.outputs[i];
         if (!isSelf) {
@@ -347,11 +282,17 @@ var DashTx = ("object" === typeof module && exports) || {};
         txInfoSigned.inputs.push(txInput);
       }
 
-      txInfoSigned.transaction = Tx.serialize(txInfoSigned);
+      txInfoSigned.transaction = serialize(txInfoSigned);
       return txInfoSigned;
     };
 
-    /** @type {TxHashAndSignInput} */
+    /** 
+     * @param {Uint8Array} privBytes
+     * @param {TxInfo} txInfo
+     * @param {Uint32} i
+     * @param {Uint32} [sigHashType]
+     * @returns {Promise<TxInputSigned>}
+     */
     txInst.hashAndSignInput = async function (
       privBytes,
       txInfo,
@@ -361,17 +302,17 @@ var DashTx = ("object" === typeof module && exports) || {};
       let txInput = txInfo.inputs[i];
 
       let _sigHashType =
-        txInput.sigHashType ?? sigHashType ?? Tx.SIGHASH_DEFAULT;
+        txInput.sigHashType ?? sigHashType ?? SIGHASH_DEFAULT;
 
-      // let inputs = Tx.selectSigHashInputs(txInfo, i, _sigHashType);
-      // let outputs = Tx.selectSigHashOutputs(txInfo, i, _sigHashType);
+      // let inputs = selectSigHashInputs(txInfo, i, _sigHashType);
+      // let outputs = selectSigHashOutputs(txInfo, i, _sigHashType);
       // let txForSig = Object.assign({}, txInfo, { inputs, outputs });
-      // let txSigHash = Tx.createForSig(txForSig, i, _sigHashType);
+      // let txSigHash = createForSig(txForSig, i, _sigHashType);
 
-      let txSigHash = Tx.createForSig(txInfo, i, _sigHashType);
-      let txHex = Tx.serialize(txSigHash, _sigHashType);
-      let txBytes = Tx.utils.hexToBytes(txHex);
-      let txHashBuf = await Tx.doubleSha256(txBytes);
+      let txSigHash = createForSig(txInfo, i, _sigHashType);
+      let txHex = serialize(txSigHash, _sigHashType);
+      let txBytes = TxUtils.hexToBytes(txHex);
+      let txHashBuf = await doubleSha256(txBytes);
 
       let sigBuf = await keyDeps.sign(privBytes, txHashBuf);
       let sigHex = "";
@@ -379,7 +320,7 @@ var DashTx = ("object" === typeof module && exports) || {};
         console.warn(`sign() should return a Uint8Array of an ASN.1 signature`);
         sigHex = sigBuf;
       } else {
-        sigHex = Tx.utils.bytesToHex(sigBuf);
+        sigHex = TxUtils.bytesToHex(sigBuf);
       }
 
       let pubKeyHex = txInput.publicKey;
@@ -388,7 +329,7 @@ var DashTx = ("object" === typeof module && exports) || {};
         if (!pubKey) {
           throw new Error(`no public key for input ${i}`);
         }
-        pubKeyHex = Tx.utils.bytesToHex(pubKey);
+        pubKeyHex = TxUtils.bytesToHex(pubKey);
       }
       if ("string" !== typeof pubKeyHex) {
         let warn = new Error("stack");
@@ -396,14 +337,14 @@ var DashTx = ("object" === typeof module && exports) || {};
           `utxo inputs should be plain JSON and use hex rather than buffers for 'publicKey'`,
           warn.stack,
         );
-        pubKeyHex = Tx.utils.bytesToHex(pubKeyHex);
+        pubKeyHex = TxUtils.bytesToHex(pubKeyHex);
       }
 
       /** @type TxInputSigned */
       let txInputSigned = Object.assign(
         {
           _transaction: txHex,
-          _hash: Tx.utils.bytesToHex(txHashBuf),
+          _hash: TxUtils.bytesToHex(txHashBuf),
           _indexForSig: txSigHash.indexForSig,
           _lockScript: txSigHash.inputs[txSigHash.indexForSig].script,
         },
@@ -433,21 +374,20 @@ var DashTx = ("object" === typeof module && exports) || {};
       let fullTransfer = false;
 
       if (!inputs) {
-        inputs = DashTx._legacyMustSelectInputs({
+        if (!utxos) {
+          throw new Error("Must provide inputs or utxos")
+        }
+        inputs = _legacyMustSelectInputs({
           utxos: utxos,
           satoshis: output.satoshis,
         });
-        if (!inputs) {
-          // tsc can't tell that 'inputs' was just guaranteed
-          throw new Error(`type checker workaround`);
-        }
       } else {
         fullTransfer = !output.satoshis;
       }
 
-      let totalAvailable = DashTx.sum(inputs);
+      let totalAvailable = sum(inputs);
       //@ts-ignore - TODO update typedefs
-      let fees = DashTx.appraise({ inputs: inputs, outputs: [output] });
+      let fees = appraise({ inputs: inputs, outputs: [output] });
 
       //let EXTRA_SIG_BYTES_PER_INPUT = 2;
       let CHANCE_INPUT_SIGS_HAVE_NO_EXTRA_BYTES = 1 / 4;
@@ -474,12 +414,12 @@ var DashTx = ("object" === typeof module && exports) || {};
 
       let change;
       let changeSats =
-        totalAvailable + -recip.satoshis + -feeTarget + -DashTx.OUTPUT_SIZE;
-      let hasChange = changeSats > DashTx.LEGACY_DUST;
+        totalAvailable + -recip.satoshis + -feeTarget + -OUTPUT_SIZE;
+      let hasChange = changeSats > LEGACY_DUST;
       if (hasChange) {
         change = { address: "", satoshis: changeSats };
         outputs.push(change);
-        feeTarget += DashTx.OUTPUT_SIZE;
+        feeTarget += OUTPUT_SIZE;
       } else {
         change = null;
         // Re: Dash Direct: we round in favor of the network (exact payments)
@@ -570,11 +510,11 @@ var DashTx = ("object" === typeof module && exports) || {};
      */
     txInst.legacy._signFeeWalk = async function (txDraft) {
       //@ts-ignore - TODO should have satoshis by now
-      let totalIn = DashTx.sum(txDraft.inputs);
-      let totalOut = DashTx.sum(txDraft.outputs);
+      let totalIn = sum(txDraft.inputs);
+      let totalOut = sum(txDraft.outputs);
       let totalFee = totalIn - totalOut;
 
-      let fees = DashTx.appraise(txDraft);
+      let fees = appraise(txDraft);
       let limit = fees.max - totalFee;
 
       /** @type TxInfoSigned */
@@ -621,7 +561,7 @@ var DashTx = ("object" === typeof module && exports) || {};
      */
     txInst.legacy._summarizeTx = function (txInfo) {
       //@ts-ignore - our inputs are mixed with CoreUtxo
-      let totalAvailable = Tx.sum(txInfo.inputs);
+      let totalAvailable = sum(txInfo.inputs);
 
       let recipient = txInfo.outputs[0];
       // to satisfy tsc
@@ -656,14 +596,19 @@ var DashTx = ("object" === typeof module && exports) || {};
     return txInst;
   };
 
-  Tx.selectSigHashInputs = function (
+  /** 
+   * @param {TxInfo} txInfo
+   * @param {Uint32} i - index of input to be signed
+   * @param {Uint8} sigHashType
+   */
+  export function selectSigHashInputs(
     txInfo,
     i,
-    sigHashType = Tx.SIGHASH_DEFAULT,
+    sigHashType = SIGHASH_DEFAULT,
   ) {
     let inputs = txInfo.inputs;
 
-    if (sigHashType & Tx.SIGHASH_ANYONECANPAY) {
+    if (sigHashType & SIGHASH_ANYONECANPAY) {
       let txInput = txInfo.inputs[i];
       inputs = [txInput];
     }
@@ -671,22 +616,27 @@ var DashTx = ("object" === typeof module && exports) || {};
     return inputs;
   };
 
-  Tx.selectSigHashOutputs = function (
+  /**
+   * @param {TxInfo} txInfo
+   * @param {Uint32} i - index of input to be signed
+   * @param {Uint8} sigHashType
+   */
+  export function selectSigHashOutputs(
     txInfo,
     i,
-    sigHashType = Tx.SIGHASH_DEFAULT,
+    sigHashType = SIGHASH_DEFAULT,
   ) {
     let outputs = txInfo.outputs;
-    if (sigHashType & Tx.SIGHASH_ALL) {
+    if (sigHashType & SIGHASH_ALL) {
       return outputs;
     }
 
-    if (sigHashType & Tx.SIGHASH_NONE) {
+    if (sigHashType & SIGHASH_NONE) {
       outputs = [];
       return outputs;
     }
 
-    if (sigHashType & Tx.SIGHASH_SINGLE) {
+    if (sigHashType & SIGHASH_SINGLE) {
       let output = txInfo.outputs[i];
       outputs = [output];
       throw new Error(
@@ -705,7 +655,7 @@ var DashTx = ("object" === typeof module && exports) || {};
    * or the largest available coins until that total is met.
    */
   //@ts-ignore - TODO update typedefs
-  Tx.createLegacyTx = function (coins, outputs, changeOutput, extraPayload) {
+  export function createLegacyTx(coins, outputs, changeOutput, extraPayload) {
     // TODO bump to 4 for DIP: enforce tx hygiene
     let version = CURRENT_VERSION;
     let type = TYPE_VERSION;
@@ -714,9 +664,9 @@ var DashTx = ("object" === typeof module && exports) || {};
     outputs = outputs.slice(0);
     changeOutput = Object.assign({}, changeOutput);
 
-    coins.sort(Tx.sortBySatsAsc);
+    coins.sort(sortBySatsAsc);
 
-    let totalBalance = Tx.sum(coins);
+    let totalBalance = sum(coins);
 
     /** @type {Array<TxInputUnspent>} */
     let inputs = [];
@@ -724,9 +674,9 @@ var DashTx = ("object" === typeof module && exports) || {};
     let fees = DashTx.appraise({ inputs, outputs });
     let taxes = fees.max;
     // requires at least one input
-    taxes += Tx.MAX_INPUT_SIZE;
+    taxes += MAX_INPUT_SIZE;
 
-    let subtotal = Tx.sum(outputs);
+    let subtotal = sum(outputs);
     let total = subtotal + taxes;
 
     let cash = 0;
@@ -758,11 +708,11 @@ var DashTx = ("object" === typeof module && exports) || {};
       }
 
       // requires at least one more input
-      total += Tx.MAX_INPUT_SIZE;
+      total += MAX_INPUT_SIZE;
     }
 
     if (cash < total) {
-      total -= Tx.MAX_INPUT_SIZE;
+      total -= MAX_INPUT_SIZE;
       if (cash < totalBalance) {
         throw new Error(
           `developer error: did not use full balance of ${totalBalance} when calculating available balance of ${cash} to pay ${total}`,
@@ -774,18 +724,18 @@ var DashTx = ("object" === typeof module && exports) || {};
     }
 
     let change = 0;
-    let dust = cash + -total + -Tx.OUTPUT_SIZE;
-    if (dust >= Tx.LEGACY_DUST) {
+    let dust = cash + -total + -OUTPUT_SIZE;
+    if (dust >= LEGACY_DUST) {
       change = dust;
       changeOutput.satoshis = change;
       outputs.push(changeOutput);
-      total += Tx.OUTPUT_SIZE;
+      total += OUTPUT_SIZE;
     }
 
     taxes = total - subtotal;
 
-    inputs.sort(Tx.sortInputs);
-    outputs.sort(Tx.sortOutputs);
+    inputs.sort(sortInputs);
+    outputs.sort(sortOutputs);
     let changeIndex = outputs.indexOf(changeOutput);
 
     let locktime = 0;
@@ -804,9 +754,10 @@ var DashTx = ("object" === typeof module && exports) || {};
     return txInfo;
   };
   //@ts-ignore - old usage - TODO REMOVE for v1
-  Tx.legacyCreateTx = Tx.createLegacyTx;
+  export const legacyCreateTx = createLegacyTx;
 
-  Tx.sortBySatsAsc = function (a, b) {
+  /** @type {TxSortBySats} */
+  export function sortBySatsAsc(a, b) {
     let aSats = a.satoshis;
     let bSats = b.satoshis;
 
@@ -821,7 +772,8 @@ var DashTx = ("object" === typeof module && exports) || {};
     return 0;
   };
 
-  Tx.sortBySatsDsc = function (a, b) {
+  /** @type {TxSortBySats} */
+  export function sortBySatsDsc(a, b) {
     let aSats = a.satoshis;
     let bSats = b.satoshis;
 
@@ -848,7 +800,8 @@ var DashTx = ("object" === typeof module && exports) || {};
    *
    * - ASC `outputIndex` (a.k.a. `output_index`, `vout`)
    */
-  Tx.sortInputs = function (a, b) {
+  /** @type {TxSortInputs} */
+  export function sortInputs(a, b) {
     let aTxid = a.txId || a.txid;
     let bTxid = b.txId || b.txid;
     // Ascending Lexicographical on TxId (prev-hash) in-memory (not wire) byte order
@@ -874,7 +827,7 @@ var DashTx = ("object" === typeof module && exports) || {};
    * @param {TxOutputSortable} b
    * @returns {Uint32}
    */
-  Tx.sortOutputs = function (a, b) {
+  export function sortOutputs(a, b) {
     // the complexity is inherent, and doesn't seem to be reasonable to break out
     /* jshint maxcomplexity:30 */
 
@@ -956,23 +909,23 @@ var DashTx = ("object" === typeof module && exports) || {};
   };
 
   /**
-   * @template {Pick<CoreUtxo, "satoshis">} T
+   * @template {CoreUtxo} T
    * @param {Object} opts
    * @param {Array<T>} opts.utxos
    * @param {Uint53} [opts.satoshis]
    * @param {Uint53} [opts.now] - ms
    * @returns {Array<T>}
    */
-  Tx._legacyMustSelectInputs = function ({ utxos, satoshis }) {
+  function _legacyMustSelectInputs({ utxos, satoshis }) {
     if (!satoshis) {
       let msg = `expected target selection value 'satoshis' to be a positive integer but got '${satoshis}'`;
       let err = new Error(msg);
       throw err;
     }
 
-    let selected = Tx._legacySelectOptimalUtxos(utxos, satoshis);
+    let selected = _legacySelectOptimalUtxos(utxos, satoshis);
     if (!selected.length) {
-      throw Tx._createInsufficientFundsError(utxos, satoshis);
+      throw _createInsufficientFundsError(utxos, satoshis);
     }
 
     return selected;
@@ -984,14 +937,14 @@ var DashTx = ("object" === typeof module && exports) || {};
    * @param {Uint53} outputSats
    * @return {Array<T>}
    */
-  Tx._legacySelectOptimalUtxos = function (utxos, outputSats) {
+  function _legacySelectOptimalUtxos(utxos, outputSats) {
     let numOutputs = 1;
     let extraSize = 0;
-    let fees = DashTx._appraiseCounts(utxos.length, numOutputs, extraSize);
+    let fees = _appraiseCounts(utxos.length, numOutputs, extraSize);
 
     let fullSats = outputSats + fees.min;
 
-    let balance = Tx.sum(utxos);
+    let balance = sum(utxos);
     if (balance < fullSats) {
       /** @type Array<T> */
       return [];
@@ -1036,12 +989,12 @@ var DashTx = ("object" === typeof module && exports) || {};
       if (i < 2) {
         // 1 input 25% chance of minimum (needs ~2 tries)
         // 2 inputs 6.25% chance of minimum (needs ~8 tries)
-        fullSats = fullSats + DashTx.MIN_INPUT_SIZE;
+        fullSats = fullSats + MIN_INPUT_SIZE;
         return false;
       }
       // but by 3 inputs... 1.56% chance of minimum (needs ~32 tries)
       // by 10 inputs... 0.00953674316% chance (needs ~524288 tries)
-      fullSats = fullSats + DashTx.MIN_INPUT_SIZE + 1;
+      fullSats = fullSats + MIN_INPUT_SIZE + 1;
     });
     if (!hasEnough) {
       /** @type Array<T> */
@@ -1056,15 +1009,15 @@ var DashTx = ("object" === typeof module && exports) || {};
    * @param {Uint53} satoshis
    * @throws {Error}
    */
-  Tx._createInsufficientFundsError = function (allInputs, satoshis) {
-    let totalBalance = Tx.sum(allInputs);
-    let dashBalance = Tx.toDash(totalBalance);
-    let dashAmount = Tx.toDash(satoshis);
+  function _createInsufficientFundsError(allInputs, satoshis) {
+    let totalBalance = sum(allInputs);
+    let dashBalance = toDash(totalBalance);
+    let dashAmount = toDash(satoshis);
 
     let numOutputs = 1;
     let extraSize = 0;
-    let fees = DashTx._appraiseCounts(allInputs.length, numOutputs, extraSize);
-    let feeAmount = Tx.toDash(fees.mid);
+    let fees = _appraiseCounts(allInputs.length, numOutputs, extraSize);
+    let feeAmount = toDash(fees.mid);
 
     let msg = `insufficient funds: cannot pay ${dashAmount} (+${feeAmount} fee) with ${dashBalance}`;
     let err = new Error(msg);
@@ -1072,13 +1025,23 @@ var DashTx = ("object" === typeof module && exports) || {};
   };
 
   // TODO createRequest
-  Tx.createRaw = function (txInfo) {
+  /** 
+   * @param {Object} txInfo
+   * @param {Uint16} [txInfo.version]
+   * @param {Uint16} [txInfo.type]
+   * @param {Array<TxInputRaw>} txInfo.inputs
+   * @param {Array<TxOutput>} txInfo.outputs
+   * @param {Uint32} [txInfo.locktime]
+   * @param {Hex} [txInfo.extraPayload]
+   * @param {Boolean} [txInfo._debug] - bespoke debug output
+   */
+  export function createRaw(txInfo) {
     let txInfoRaw = Object.assign({}, txInfo);
 
     txInfoRaw.inputs = [];
     for (let i = 0; i < txInfo.inputs.length; i += 1) {
       let input = txInfo.inputs[i];
-      let rawInput = Tx.createInputRaw(input, i);
+      let rawInput = createInputRaw(input, i);
       txInfoRaw.inputs.push(rawInput);
     }
 
@@ -1086,7 +1049,11 @@ var DashTx = ("object" === typeof module && exports) || {};
   };
 
   // TODO createRequestInput
-  Tx.createInputRaw = function (input, i) {
+  /** 
+   * @param {TxInputRaw} input
+   * @param {Uint32} i
+   */
+  export function createInputRaw(input, i) {
     let rawInput = {
       txid: input.txId || input.txid,
       txId: input.txId || input.txid,
@@ -1096,7 +1063,12 @@ var DashTx = ("object" === typeof module && exports) || {};
     return rawInput;
   };
 
-  Tx.createForSig = function (txInfo, inputIndex, sigHashType) {
+  /** 
+   * @param {TxInfo} txInfo
+   * @param {Uint32} inputIndex - create hashable tx for this input
+   * @param {Uint32} sigHashType - 0x01 for ALL, or 0x81 for ALL + ANYONECANPAY
+   */
+  export function createForSig(txInfo, inputIndex, sigHashType) {
     let txForSig = Object.assign({ indexForSig: -1 }, txInfo);
 
     /** @type {Array<TxInputRaw|TxInputForSig>} */
@@ -1104,13 +1076,13 @@ var DashTx = ("object" === typeof module && exports) || {};
     for (let i = 0; i < txInfo.inputs.length; i += 1) {
       let input = txInfo.inputs[i];
       if (inputIndex === i) {
-        let sighashInput = Tx.createInputForSig(input, i);
+        let sighashInput = createInputForSig(input, i);
         txForSig.indexForSig += txForSig.inputs.push(sighashInput);
         continue;
       }
 
-      if (!(sigHashType & Tx.SIGHASH_ANYONECANPAY)) {
-        let rawInput = Tx.createInputRaw(input, i);
+      if (!(sigHashType & SIGHASH_ANYONECANPAY)) {
+        let rawInput = createInputRaw(input, i);
         txForSig.inputs.push(rawInput);
       }
     }
@@ -1118,7 +1090,11 @@ var DashTx = ("object" === typeof module && exports) || {};
     return txForSig;
   };
 
-  Tx.createInputForSig = function (input, i) {
+  /** 
+   * @param {TxInputForSig} input
+   * @param {Uint32} i - create hashable tx for this input
+   */
+  export function createInputForSig(input, i) {
     let lockScript = input.script;
     if (!lockScript) {
       if (!input.pubKeyHash) {
@@ -1126,7 +1102,7 @@ var DashTx = ("object" === typeof module && exports) || {};
           `signable input must have either 'pubKeyHash' or 'script'`,
         );
       }
-      lockScript = Tx.createPkhScript(input.pubKeyHash);
+      lockScript = createPkhScript(input.pubKeyHash);
     }
     return {
       txId: input.txId || input.txid,
@@ -1142,12 +1118,23 @@ var DashTx = ("object" === typeof module && exports) || {};
    * @param {Hex} pubKeyHash
    * @returns {Hex}
    */
-  Tx.createPkhScript = function (pubKeyHash) {
+  export function createPkhScript(pubKeyHash) {
     let lockScript = `${OP_DUP}${OP_HASH160}${PKH_SIZE}${pubKeyHash}${OP_EQUALVERIFY}${OP_CHECKSIG}`;
     return lockScript;
   };
 
-  Tx.serialize = function (
+  /** 
+   * @param {Object} txInfo
+   * @param {Uint16} [txInfo.version]
+   * @param {Uint16} [txInfo.type]
+   * @param {Array<TxInputRaw|TxInputForSig|TxInputSigned>} txInfo.inputs
+   * @param {Array<TxOutput>} txInfo.outputs
+   * @param {Uint32} [txInfo.locktime]
+   * @param {Hex?} [txInfo.extraPayload] - extra payload
+   * @param {Boolean} [txInfo._debug] - bespoke debug output
+   * @param {Uint32?} [sigHashType]
+   */
+  export function serialize(
     {
       version = CURRENT_VERSION,
       type = TYPE_VERSION,
@@ -1172,14 +1159,14 @@ var DashTx = ("object" === typeof module && exports) || {};
     let t = TxUtils._toUint16LE(type);
     tx.push(t);
 
-    void Tx.serializeInputs(inputs, { _tx: tx, _sep: _sep });
-    void Tx.serializeOutputs(outputs, { _tx: tx, _sep: _sep });
+    void serializeInputs(inputs, { _tx: tx, _sep: _sep });
+    void serializeOutputs(outputs, { _tx: tx, _sep: _sep });
 
     let locktimeHex = TxUtils.toUint32LE(locktime);
     tx.push(locktimeHex);
 
     if (extraPayload) {
-      let nExtraPayload = Tx.utils.toVarInt(extraPayload.length / 2);
+      let nExtraPayload = TxUtils.toVarInt(extraPayload.length / 2);
       tx.push(nExtraPayload);
       tx.push(extraPayload);
     }
@@ -1193,18 +1180,24 @@ var DashTx = ("object" === typeof module && exports) || {};
     return txHex;
   };
   //@ts-ignore - same function, but typed and documented separately for clarity
-  Tx.serializeForSig = Tx.serialize;
+  export const serializeForSig = serialize;
 
-  Tx.serializeInputs = function (inputs, _opts) {
+  /** 
+   * @param {Array<TxInput|TxInputRaw|TxInputForSig|TxInputSigned>} inputs
+   * @param {Object} [_opts]
+   * @param {Array<String>} [_opts._tx]
+   * @param {String} [_opts._sep]
+   */
+  export function serializeInputs(inputs, _opts) {
     let tx = _opts?._tx || [];
     let _sep = _opts?._sep ?? "";
 
-    let nInputs = Tx.utils.toVarInt(inputs.length);
+    let nInputs = TxUtils.toVarInt(inputs.length);
     tx.push(nInputs);
 
     for (let i = 0; i < inputs.length; i += 1) {
       let input = inputs[i];
-      let inputHex = Tx.serializeInput(input, i, { _sep: _sep });
+      let inputHex = serializeInput(input, i, { _sep: _sep });
       let txIn = inputHex.join(_sep);
       tx.push(txIn);
     }
@@ -1212,7 +1205,14 @@ var DashTx = ("object" === typeof module && exports) || {};
     return tx;
   };
 
-  Tx.serializeInput = function (input, i, _opts) {
+  /** 
+   * @param {TxInput|TxInputRaw|TxInputForSig|TxInputSigned} input
+   * @param {Uint32} i
+   * @param {Object} [_opts]
+   * @param {Array<String>} [_opts._tx]
+   * @param {String} [_opts._sep]
+   */
+  export function serializeInput(input, i, _opts) {
     let tx = _opts?._tx || [];
 
     if (!input.txid) {
@@ -1227,7 +1227,7 @@ var DashTx = ("object" === typeof module && exports) || {};
 
     assertHex(input.txid, "txid");
 
-    let reverseTxId = Tx.utils.reverseHex(input.txid);
+    let reverseTxId = TxUtils.reverseHex(input.txid);
     tx.push(reverseTxId);
 
     let voutIndex = input.outputIndex;
@@ -1242,17 +1242,17 @@ var DashTx = ("object" === typeof module && exports) || {};
     //@ts-ignore - enum types not handled properly here
     if (input.signature) {
       //@ts-ignore
-      let sigHashTypeVar = Tx.utils.toVarInt(input.sigHashType);
+      let sigHashTypeVar = TxUtils.toVarInt(input.sigHashType);
       //@ts-ignore
       let sig = `${input.signature}${sigHashTypeVar}`;
-      let sigSize = Tx.utils.toVarInt(sig.length / 2);
+      let sigSize = TxUtils.toVarInt(sig.length / 2);
 
       //@ts-ignore
-      let keySize = Tx.utils.toVarInt(input.publicKey.length / 2);
+      let keySize = TxUtils.toVarInt(input.publicKey.length / 2);
       //@ts-ignore
       let sigScript = `${sigSize}${sig}${keySize}${input.publicKey}`;
       let sigScriptLen = sigScript.length / 2;
-      let sigScriptLenSize = Tx.utils.toVarInt(sigScriptLen);
+      let sigScriptLenSize = TxUtils.toVarInt(sigScriptLen);
       tx.push(sigScriptLenSize);
       tx.push(sigScript);
       //@ts-ignore
@@ -1261,7 +1261,7 @@ var DashTx = ("object" === typeof module && exports) || {};
       let lockScript = input.script;
       //@ts-ignore
       let lockScriptLen = input.script.length / 2;
-      let lockScriptLenSize = Tx.utils.toVarInt(lockScriptLen);
+      let lockScriptLenSize = TxUtils.toVarInt(lockScriptLen);
       tx.push(lockScriptLenSize);
       tx.push(lockScript);
     } else {
@@ -1277,7 +1277,8 @@ var DashTx = ("object" === typeof module && exports) || {};
     return tx;
   };
 
-  Tx.serializeOutputs = function (outputs, opts) {
+  /** @type {TxSerializeOutputs} */
+  export function serializeOutputs(outputs, opts) {
     let tx = opts?._tx || [];
     let _sep = opts?._sep ?? "";
 
@@ -1285,12 +1286,12 @@ var DashTx = ("object" === typeof module && exports) || {};
       throw new Error(E_NO_OUTPUTS);
     }
 
-    let nOutputs = Tx.utils.toVarInt(outputs.length);
+    let nOutputs = TxUtils.toVarInt(outputs.length);
     tx.push(nOutputs);
 
     for (let i = 0; i < outputs.length; i += 1) {
       let output = outputs[i];
-      let outputHex = Tx.serializeOutput(output, i, { _sep });
+      let outputHex = serializeOutput(output, i, { _sep });
       let txOut = outputHex.join(_sep);
       tx.push(txOut);
     }
@@ -1298,7 +1299,14 @@ var DashTx = ("object" === typeof module && exports) || {};
     return tx;
   };
 
-  Tx.serializeOutput = function (output, i, _opts) {
+  /** 
+   * @param {TxOutput} output
+   * @param {Uint32} i
+   * @param {Object} [_opts]
+   * @param {Array<String>} [_opts._tx]
+   * @param {String} [_opts._sep]
+   */
+  export function serializeOutput(output, i, _opts) {
     let tx = _opts?._tx || [];
     let _sep = _opts?._sep ?? "";
 
@@ -1314,7 +1322,8 @@ var DashTx = ("object" === typeof module && exports) || {};
       }
 
       let sats = output.satoshis ?? 0;
-      let memoScriptHex = Tx._createMemoScript(output.memo, sats, i);
+      let memoScriptHex = _createMemoScript(output.memo, sats, i);
+      console.log('dashtx.js serializeOutput memoScriptHex', memoScriptHex)
       let txOut = memoScriptHex.join(_sep);
 
       tx.push(txOut);
@@ -1342,7 +1351,11 @@ var DashTx = ("object" === typeof module && exports) || {};
     return tx;
   };
 
-  Tx.createDonationOutput = function (opts) {
+  /** 
+   * @param {Object} [opts]
+   * @param {String?} [opts.message] - UTF-8 Memo String
+   */
+  export function createDonationOutput(opts) {
     let satoshis = 0;
     let message = opts?.message;
     if (typeof message !== "string") {
@@ -1361,7 +1374,7 @@ var DashTx = ("object" === typeof module && exports) || {};
    * @param {Uint53} sats - typically 0, but 1.0 for proposal collateral
    * @returns {Array<String>} - memo script hex
    */
-  Tx._createMemoScript = function (memoHex, sats, i = 0) {
+  function _createMemoScript(memoHex, sats, i = 0) {
     let outputHex = [];
     let satoshis = TxUtils.toUint64LE(sats);
     outputHex.push(satoshis);
@@ -1409,7 +1422,8 @@ var DashTx = ("object" === typeof module && exports) || {};
     return outputHex;
   };
 
-  Tx.sum = function (coins) {
+  /** @type {TxSum} */
+  export function sum(coins) {
     let balance = 0;
     for (let utxo of coins) {
       let sats = utxo.satoshis;
@@ -1419,12 +1433,13 @@ var DashTx = ("object" === typeof module && exports) || {};
     return balance;
   };
 
-  Tx.getId = async function (txHex) {
-    let u8 = Tx.utils.hexToBytes(txHex);
+  /** @type {TxGetId} */
+  export const getId = async function (txHex) {
+    let u8 = TxUtils.hexToBytes(txHex);
     //console.log("Broadcastable Tx Buffer");
     //console.log(u8);
 
-    let hashU8 = await Tx.doubleSha256(u8);
+    let hashU8 = await doubleSha256(u8);
 
     let reverseU8 = new Uint8Array(hashU8.length);
     let reverseIndex = reverseU8.length - 1;
@@ -1439,15 +1454,15 @@ var DashTx = ("object" === typeof module && exports) || {};
     //console.log("Reversed Round 2 Hash Buffer");
     //console.log(reverseU8);
 
-    let id = Tx.utils.bytesToHex(reverseU8);
+    let id = TxUtils.bytesToHex(reverseU8);
     return id;
   };
 
   /**
    * @param {Uint8Array} bytes
-   * @returns {Promise<Uint8Array>} - the reversed double-sha256sum
+   * @returns {Promise<Uint8Array>} - the double-sha256sum
    */
-  Tx.doubleSha256 = async function (bytes) {
+  export const doubleSha256 = async function (bytes) {
     let ab = await Crypto.subtle.digest({ name: "SHA-256" }, bytes);
     //console.log("Round 1 Hash Buffer");
     //console.log(ab);
@@ -1464,12 +1479,12 @@ var DashTx = ("object" === typeof module && exports) || {};
   /**
    * @param {String} txHex
    */
-  Tx.parseUnknown = function (txHex) {
+  export function parseUnknown(txHex) {
     /**@type {TxInfo}*/
     //@ts-ignore
     let txInfo = {};
     try {
-      void Tx._parse(txHex, txInfo);
+      void _parse(txHex, txInfo);
     } catch (e) {
       /**@type {Error}*/
       //@ts-ignore - trust me bro, it's an error
@@ -1491,7 +1506,7 @@ var DashTx = ("object" === typeof module && exports) || {};
    * @param {Object<String, any>} tx
    * @param {String} hex
    */
-  Tx._parse = function (hex, tx = {}) {
+  function _parse(hex, tx = {}) {
     /* jshint maxstatements: 200 */
     tx.hasInputScript = false;
     tx.totalSatoshis = 0;
@@ -1499,12 +1514,12 @@ var DashTx = ("object" === typeof module && exports) || {};
     tx.offset = 0;
 
     tx.versionHex = hex.substr(tx.offset, 4);
-    let versionHexRev = Tx.utils.reverseHex(tx.versionHex);
+    let versionHexRev = TxUtils.reverseHex(tx.versionHex);
     tx.version = parseInt(versionHexRev, 16);
     tx.offset += 4;
 
     tx.typeHex = hex.substr(tx.offset, 4);
-    let typeHexRev = Tx.utils.reverseHex(tx.typeHex);
+    let typeHexRev = TxUtils.reverseHex(tx.typeHex);
     tx.type = parseInt(typeHexRev, 16);
     tx.offset += 4;
 
@@ -1520,12 +1535,12 @@ var DashTx = ("object" === typeof module && exports) || {};
       tx.inputs.push(input);
 
       input.txidHex = hex.substr(tx.offset, 64);
-      input.txid = Tx.utils.reverseHex(input.txidHex);
+      input.txid = TxUtils.reverseHex(input.txidHex);
       input.txId = input.txid; // TODO
       tx.offset += 64;
 
       input.outputIndexHex = hex.substr(tx.offset, 8);
-      let outputIndexHexLe = Tx.utils.reverseHex(input.outputIndexHex);
+      let outputIndexHexLe = TxUtils.reverseHex(input.outputIndexHex);
       input.outputIndex = parseInt(outputIndexHexLe, 16);
       tx.offset += 8;
 
@@ -1635,7 +1650,7 @@ var DashTx = ("object" === typeof module && exports) || {};
 
       output.satoshisHex = hex.substr(tx.offset, 16);
       tx.offset += 16;
-      let satsHex = Tx.utils.reverseHex(output.satoshisHex);
+      let satsHex = TxUtils.reverseHex(output.satoshisHex);
       output.satoshis = parseInt(satsHex, 16);
       tx.totalSatoshis += output.satoshis;
 
@@ -1658,7 +1673,7 @@ var DashTx = ("object" === typeof module && exports) || {};
         output.memo = output.script.slice(4, 2 * output.lockScriptSize);
         output.message = "";
         let decoder = new TextDecoder();
-        let bytes = Tx.utils.hexToBytes(output.memo);
+        let bytes = TxUtils.hexToBytes(output.memo);
         try {
           output.message = decoder.decode(bytes);
         } catch (e) {
@@ -1671,7 +1686,7 @@ var DashTx = ("object" === typeof module && exports) || {};
     }
 
     tx.locktimeHex = hex.substr(tx.offset, 8);
-    let locktimeHexRev = Tx.utils.reverseHex(tx.locktimeHex);
+    let locktimeHexRev = TxUtils.reverseHex(tx.locktimeHex);
     tx.locktime = parseInt(locktimeHexRev, 16);
     tx.offset += 8;
 
@@ -1729,9 +1744,9 @@ var DashTx = ("object" === typeof module && exports) || {};
     return [num, size];
   };
 
-  // TODO Tx.utils.sha256sha256(txHex, inputs, sigHashType)
+  // TODO TxUtils.sha256sha256(txHex, inputs, sigHashType)
   // TODO Tx.signInput(txHash, input, sigHashType)
-  // TODO Tx.utils.isTxInputSigned(txHash, input)
+  // TODO TxUtils.isTxInputSigned(txHash, input)
 
   /**
    * @param {String} hex
@@ -1753,7 +1768,14 @@ var DashTx = ("object" === typeof module && exports) || {};
     }
   }
 
-  /** @type {TxRPC} */
+  /** 
+   * @param {string} basicAuthUrl - ex: https://api:token@trpc.digitalcash.dev/
+   *                                    http://user:pass@localhost:19998/
+   * @param {string} method - the rpc, such as 'getblockchaininfo',
+   *                          'getaddressdeltas', or 'help'
+   * @param {...any} params - the arguments for the specific rpc
+   *                          ex: rpc(url, 'help', 'getaddressdeltas')
+   */
   TxUtils.rpc = async function rpc(basicAuthUrl, method, ...params) {
     let url = new URL(basicAuthUrl);
     let baseUrl = `${url.protocol}//${url.host}${url.pathname}`;
@@ -1883,7 +1905,7 @@ var DashTx = ("object" === typeof module && exports) || {};
     // 0x00000003
     let hex = n.toString(16).padStart(8, "0");
 
-    let hexLE = Tx.utils.reverseHex(hex);
+    let hexLE = TxUtils.reverseHex(hex);
     return hexLE;
   };
   //@ts-ignore
@@ -1977,19 +1999,13 @@ var DashTx = ("object" === typeof module && exports) || {};
   TxUtils.strToHex = function (str) {
     let encoder = new TextEncoder();
     let bytes = encoder.encode(str);
-    let hex = Tx.utils.bytesToHex(bytes);
+    let hex = TxUtils.bytesToHex(bytes);
 
     return hex;
   };
 
-  Tx.utils = TxUtils;
+export { TxUtils as utils };
 
-  //@ts-ignore
-  window.DashTx = Tx;
-})(globalThis.window || {}, DashTx);
-if ("object" === typeof module) {
-  module.exports = DashTx;
-}
 
 // Type Aliases
 
@@ -2102,7 +2118,7 @@ if ("object" === typeof module) {
  * @prop {String} [publicKey] - hex-encoded public key (typically starts with a 0x02 or 0x03 prefix)
  * @prop {String} [pubKeyHash] - the 20-byte pubKeyHash (address without magic byte or checksum)
  * @prop {String} [sequence] - the 4-byte sequence (typically ffffffff)
- * @prop {Uint32} sigHashType - typically 0x81 (SIGHASH_ALL|SIGHASH_ANYONECANPAY)
+ * @prop {Uint32} [sigHashType] - typically 0x81 (SIGHASH_ALL|SIGHASH_ANYONECANPAY)
  */
 
 /**
@@ -2192,61 +2208,23 @@ if ("object" === typeof module) {
  */
 
 /**
- * Create a donation output with a nice message.
- * @callback TxCreateDonationOutput
- * @param {Object} [opts]
- * @param {String?} [opts.message] - UTF-8 Memo String
- */
-
-/**
- * @callback TxCreateForSig
- * @param {TxInfo} txInfo
- * @param {Uint32} inputIndex - create hashable tx for this input
- * @param {Uint32} sigHashType - 0x01 for ALL, or 0x81 for ALL + ANYONECANPAY
- */
-
-/**
- * @callback TxCreateInputForSig
- * @param {TxInputForSig} input
- * @param {Uint32} inputIndex - create hashable tx for this input
- */
-
-/**
  * @callback TxCreatePkhScript
  * @param {Hex} pubKeyHash
  * @returns {Hex} - ${OP_DUP}${OP_HASH160}${PKH_SIZE}${pubKeyHash}${OP_EQUALVERIFY}${OP_CHECKSIG}
  */
 
-/**
- * @callback TxCreateRaw
- * @param {Object} opts
- * @param {Uint16} [opts.version]
- * @param {Uint16} [opts.type]
- * @param {Array<TxInputRaw>} opts.inputs
- * @param {Array<TxOutput>} opts.outputs
- * @param {Uint32} [opts.locktime]
- * @param {Hex} [opts.extraPayload]
- * @param {Boolean} [opts._debug] - bespoke debug output
- */
-
-/**
- * @callback TxCreateInputRaw
- * @param {TxInputRaw} input
- * @param {Uint32} i
- */
-
-/**
- * @callback TxCreateSigned
- * @param {Object} opts
- * @param {Uint16} [opts.version]
- * @param {Uint16} [opts.type]
- * @param {Array<TxInputSigned>} opts.inputs
- * @param {Array<TxOutput>} opts.outputs
- * @param {Uint32} [opts.locktime]
- * @param {Hex} [opts.extraPayload]
- * @param {Boolean} [opts._debug] - bespoke debug output
- * xparam {String} [opts.sigHashType] - hex, typically 01 (ALL)
- */
+// /**
+//  * @callback TxCreateSigned
+//  * @param {Object} opts
+//  * @param {Uint16} [opts.version]
+//  * @param {Uint16} [opts.type]
+//  * @param {Array<TxInputSigned>} opts.inputs
+//  * @param {Array<TxOutput>} opts.outputs
+//  * @param {Uint32} [opts.locktime]
+//  * @param {Hex} [opts.extraPayload]
+//  * @param {Boolean} [opts._debug] - bespoke debug output
+//  * @param {String} [opts.sigHashType] - hex, typically 01 (ALL)
+//  */
 
 /**
  * @callback TxGetId
@@ -2274,6 +2252,7 @@ if ("object" === typeof module) {
  * @callback TxHashAndSignAll
  * @param {TxInfo} txInfo
  * @param {Uint32} [sigHashType]
+ * @returns {Promise<TxInfoSigned>}
  */
 
 /**
@@ -2282,6 +2261,7 @@ if ("object" === typeof module) {
  * @param {TxInfo} txInfo
  * @param {Uint32} i
  * @param {Uint32} [sigHashType]
+ * @returns {Promise<TxInputSigned>}
  */
 
 /**
@@ -2334,75 +2314,22 @@ if ("object" === typeof module) {
  * @returns {String} - hex pairs in reverse order
  */
 
-/**
- * @callback TxSelectSigHashInputs
- * @param {TxInfo} txInfo
- * @param {Uint32} i - index of input to be signed
- * @param {Uint8} sighHashType
- */
-
-/**
- * @callback TxSelectSigHashOutputs
- * @param {TxInfo} txInfo
- * @param {Uint32} i - index of input to be signed
- * @param {Uint8} sighHashType
- */
-
-/**
- * @callback TxSerialize
- * @param {Object} txInfo
- * @param {Uint16} [txInfo.version]
- * @param {Uint16} [txInfo.type]
- * @param {Array<TxInputRaw|TxInputForSig|TxInputSigned>} txInfo.inputs
- * @param {Array<TxOutput>} txInfo.outputs
- * @param {Uint32} [txInfo.locktime]
- * @param {Hex?} [txInfo.extraPayload] - extra payload
- * @param {Boolean} [txInfo._debug] - bespoke debug output
- * @param {Uint32?} [sigHashType]
- */
-
-/**
- * @callback TxSerializeForSig
- * @param {Object} txInfo
- * @param {Uint16} [txInfo.version]
- * @param {Uint16} [txInfo.type]
- * @param {Array<TxInputRaw|TxInputForSig>} txInfo.inputs
- * @param {Uint32} [txInfo.locktime]
- * @param {Array<TxOutput>} txInfo.outputs
- * @param {Hex?} [txInfo.extraPayload] - extra payload
- * @param {Boolean} [txInfo._debug] - bespoke debug output
- * @param {Uint32?} sigHashType
- */
-
-/**
- * @callback TxSerializeInputs
- * @param {Array<TxInput|TxInputRaw|TxInputForSig|TxInputSigned>} txInputs
- * @param {Object} [_opts]
- * @param {Array<String>} [_opts._tx]
- * @param {String} [_opts._sep]
- */
-
-/**
- * @callback TxSerializeInput
- * @param {TxInput|TxInputRaw|TxInputForSig|TxInputSigned} txInput
- * @param {Uint32} i
- * @param {Object} [_opts]
- * @param {Array<String>} [_opts._tx]
- * @param {String} [_opts._sep]
- */
+// /**
+//  * @callback TxSerializeForSig
+//  * @param {Object} txInfo
+//  * @param {Uint16} [txInfo.version]
+//  * @param {Uint16} [txInfo.type]
+//  * @param {Array<TxInputRaw|TxInputForSig>} txInfo.inputs
+//  * @param {Uint32} [txInfo.locktime]
+//  * @param {Array<TxOutput>} txInfo.outputs
+//  * @param {Hex?} [txInfo.extraPayload] - extra payload
+//  * @param {Boolean} [txInfo._debug] - bespoke debug output
+//  * @param {Uint32?} sigHashType
+//  */
 
 /**
  * @callback TxSerializeOutputs
  * @param {Array<TxOutput>} txOutputs
- * @param {Object} [_opts]
- * @param {Array<String>} [_opts._tx]
- * @param {String} [_opts._sep]
- */
-
-/**
- * @callback TxSerializeOutput
- * @param {TxOutput} txOutput
- * @param {Uint32} i
  * @param {Object} [_opts]
  * @param {Array<String>} [_opts._tx]
  * @param {String} [_opts._sep]
@@ -2458,16 +2385,6 @@ if ("object" === typeof module) {
  * @callback TxToPublicKey
  * @param {TxPrivateKey} privateKey - buf
  * @returns {Promise<TxPublicKey>} - public key buf
- */
-
-/**
- * @callback TxRPC
- * @param {String} basicAuthUrl - ex: https://api:token@trpc.digitalcash.dev/
- *                                    http://user:pass@localhost:19998/
- * @param {String} method - the rpc, such as 'getblockchaininfo',
- *                          'getaddressdeltas', or 'help'
- * @param {...any} params - the arguments for the specific rpc
- *                          ex: rpc(url, 'help', 'getaddressdeltas')
  */
 
 /**
